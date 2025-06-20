@@ -39,15 +39,27 @@ progressContainer.addEventListener('click', (e) => {
   audio.currentTime = (clickX / width) * duration;
 });
 
-// Dragging functionality
+// Dragging functionality (fixed)
 let isDragging = false;
 let offsetX = 0;
 let offsetY = 0;
 
 musicContainer.addEventListener('mousedown', (e) => {
+  // Ignore button clicks
+  if (e.target.closest('button') || e.target.tagName === 'I') return;
+
   isDragging = true;
-  offsetX = e.clientX - musicContainer.getBoundingClientRect().left;
-  offsetY = e.clientY - musicContainer.getBoundingClientRect().top;
+  musicContainer.style.cursor = 'grabbing';
+
+  const rect = musicContainer.getBoundingClientRect();
+  offsetX = e.clientX - rect.left;
+  offsetY = e.clientY - rect.top;
+
+  // Convert absolute position properly
+  musicContainer.style.position = 'absolute';
+  musicContainer.style.left = `${rect.left}px`;
+  musicContainer.style.top = `${rect.top}px`;
+  musicContainer.style.right = 'auto'; // remove right to avoid conflict
 });
 
 document.addEventListener('mousemove', (e) => {
@@ -59,4 +71,5 @@ document.addEventListener('mousemove', (e) => {
 
 document.addEventListener('mouseup', () => {
   isDragging = false;
+  musicContainer.style.cursor = 'grab';
 });

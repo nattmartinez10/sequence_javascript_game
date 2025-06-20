@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Enter Game</title>
+  <link rel="stylesheet" href="login.css" />
+</head>
+<body>
+  <div class="login-container">
+    <h1>Nuestro espacio ♡</h1>
+    <form id="login-form">
+      <label for="name">Ingresa tu nombre:</label>
+      <input type="text" id="name" required />
+
+      <label for="color">Elige el color de tu ficha:</label>
+      <select id="color" required>
+        <option value="red">Red</option>
+        <option value="blue">Blue</option>
+        <option value="green">Green</option>
+        <option value="yellow">Yellow</option>
+      </select>
+
+      <button type="submit">Enter</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('login-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const name = encodeURIComponent(document.getElementById('name').value);
+      const color = encodeURIComponent(document.getElementById('color').value);
+      window.location.href = `sequence.html?name=${name}&color=${color}`;
+    });
+  </script>
+</body>
+</html>

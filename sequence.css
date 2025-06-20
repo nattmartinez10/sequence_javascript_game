@@ -1,29 +1,32 @@
 body {
   font-family: 'Segoe UI', sans-serif;
   margin: 0;
-  background-color: #2e8b57;
+  background-color: #1e4d35;
   color: white;
   overflow: hidden;
 }
 
 .main-layout {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: 1fr auto;
+  grid-template-areas:
+    "info board ."
+    ".    hand  .";
   height: 100vh;
-  padding: 10px;
-  box-sizing: border-box;
   gap: 10px;
+  padding: 10px;
+  padding-top: 30px;
+  box-sizing: border-box;
 }
 
+/* === Game Board === */
 .board {
   display: grid;
+  grid-area: board;
   grid-template-columns: repeat(10, 42px);
   grid-template-rows: repeat(10, 42px);
   gap: 3px;
-  background-color: darkgreen;
-  border: 3px solid #333;
   transition: transform 0.3s ease;
 }
 
@@ -31,7 +34,6 @@ body {
   width: 42px;
   height: 42px;
   background-color: #006400;
-  border: 1px solid #444;
   position: relative;
   transition: transform 0.2s ease;
 }
@@ -60,20 +62,40 @@ body {
   box-shadow: 0 0 3px #000;
 }
 
+/* Highlight for selected card on board */
+.cell.highlight {
+  outline: 2px solid yellow;
+  box-shadow: 0 0 10px yellow;
+  z-index: 2;
+}
+
+.cell[data-permanent="true"] .chip {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* === Hand === */
 .hand {
   display: flex;
-  justify-content: center;
+  flex-direction: row;
+  justify-content: flex-end;
   gap: 8px;
   position: absolute;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%) rotate(-5deg);
+  right: 20px;
+  transform: translateY(100%) rotate(-5deg);
   z-index: 10;
   padding: 10px 20px;
   background-color: rgba(0, 0, 0, 0.6);
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
+  transition: transform 0.3s ease;
 }
+
+.hand.visible {
+  transform: translateY(0%) rotate(-5deg);
+}
+
 
 .hand img {
   width: 60px;
@@ -93,8 +115,11 @@ body {
   border: 2px solid yellow;
 }
 
+/* === Player Info === */
 .player-info {
-  width: 180px;
+  width: 200px;
+  grid-area: info;
+  align-self: start;
   background: #333;
   border-radius: 10px;
   padding: 12px;
@@ -109,9 +134,58 @@ body {
 .player-info table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .player-info table td {
   padding: 6px;
   border-bottom: 1px solid #555;
+  vertical-align: middle;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.player-info table td:first-child {
+  width: 24px;
+}
+
+.player-info table td:nth-child(2) {
+  width: 80px;
+}
+
+.player-info table td:nth-child(3) {
+  width: 70px;
+  text-align: right;
+}
+
+/* === Turn Banner === */
+.turn-banner {
+  margin: 10px auto;
+  padding: 10px 20px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  border-radius: 10px;
+  width: fit-content;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.chip.small {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+/* === Winning Glow === */
+.sequence-glow {
+  box-shadow: 0 0 12px 5px yellow;
+  animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 12px 5px yellow; }
+  100% { box-shadow: 0 0 20px 10px gold; }
 }

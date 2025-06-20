@@ -2,20 +2,21 @@
 
 .music-container {
   background-color: #fff;
-  border-radius: 15px;
-  box-shadow: 0 20px 20px 0 rgba(252, 169, 169, 0.6);
+  border-radius: 10.5px; /* 15 * 0.7 */
+  box-shadow: 0 14px 14px 0 #677681; /* 20 * 0.7 */
   display: flex;
-  padding: 20px 30px;
+  padding: 14px 21px; /* 20/30 * 0.7 */
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 40px; /* 40 * 0.7 */
+  right: 100px; /* 20 * 0.7 */
   cursor: grab;
   z-index: 100;
+  width: 245px; /* scaled down from ~350px */
 }
 
 .img-container {
   position: relative;
-  width: 110px;
+  width: 77px; /* 110 * 0.7 */
 }
 
 .img-container::after {
@@ -25,15 +26,15 @@
   position: absolute;
   bottom: 100%;
   left: 50%;
-  width: 20px;
-  height: 20px;
+  width: 14px; /* 20 * 0.7 */
+  height: 14px;
   transform: translate(-50%, 50%);
 }
 
 .img-container img {
   border-radius: 50%;
   object-fit: cover;
-  height: 110px;
+  height: 77px; /* 110 * 0.7 */
   width: inherit;
   position: absolute;
   bottom: 0;
@@ -66,15 +67,15 @@
   background-color: #fff;
   border: 0;
   color: #dfdbdf;
-  font-size: 20px;
+  font-size: 14px; /* 20 * 0.7 */
   cursor: pointer;
-  padding: 10px;
-  margin: 0 20px;
+  padding: 7px; /* 10 * 0.7 */
+  margin: 0 14px; /* 20 * 0.7 */
 }
 
 .action-btn.action-btn-big {
   color: #cdc2d0;
-  font-size: 30px;
+  font-size: 21px; /* 30 * 0.7 */
 }
 
 .action-btn:focus {
@@ -83,12 +84,12 @@
 
 .music-info {
   background-color: rgba(255, 255, 255, 0.5);
-  border-radius: 15px 15px 0 0;
+  border-radius: 10.5px 10.5px 0 0;
   position: absolute;
   top: 0;
-  left: 20px;
-  width: calc(100% - 40px);
-  padding: 10px 10px 10px 150px;
+  left: 14px; /* 20 * 0.7 */
+  width: calc(100% - 28px); /* 40 * 0.7 */
+  padding: 7px 7px 7px 105px; /* 10 and 150 * 0.7 */
   opacity: 0;
   transform: translateY(0%);
   transition: transform 0.3s ease-in, opacity 0.3s ease-in;
@@ -102,20 +103,21 @@
 
 .music-info h4 {
   margin: 0;
+  font-size: 12px;
 }
 
 .progress-container {
   background: #fff;
-  border-radius: 5px;
+  border-radius: 3.5px;
   cursor: pointer;
-  margin: 10px 0;
-  height: 4px;
+  margin: 7px 0; /* 10 * 0.7 */
+  height: 3px; /* 4 * 0.7 */
   width: 100%;
 }
 
 .progress {
-  background-color: #fe8daa;
-  border-radius: 5px;
+  background-color: #40E0D0;
+  border-radius: 3.5px;
   height: 100%;
   width: 0%;
   transition: width 0.1s linear;
