@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sequence Game</title>
+  <link rel="stylesheet" href="sequence.css" />
+  <link rel="stylesheet" href="musicplayer.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.min.css" />
+</head>
+<body>
+  <div class="main-layout">
+    <div id="board" class="board"></div>
+
+    <div class="player-info">
+      <h2>Players</h2>
+      <table>
+        <tr><td>Alice</td><td>2 Sequences</td></tr>
+        <tr><td>Bob</td><td>1 Sequence</td></tr>
+      </table>
+    </div>
+
+    <div id="player-hand" class="hand"></div>
+  </div>
+
+  <!-- Music Player -->
+  <div class="music-container" id="music-container">
+    <div class="music-info">
+      <h4 id="title">Ukulele</h4>
+      <div class="progress-container" id="progress-container">
+        <div class="progress" id="progress"></div>
+      </div>
+    </div>
+
+    <audio src="music/ukulele.mp3" id="audio"></audio>
+
+    <div class="img-container">
+      <img src="images/ukulele.jpg" alt="music-cover" id="cover" />
+    </div>
+
+    <div class="navigation">
+      <button id="prev" class="action-btn"><i class="fas fa-backward"></i></button>
+      <button id="play" class="action-btn action-btn-big"><i class="fas fa-play"></i></button>
+      <button id="next" class="action-btn"><i class="fas fa-forward"></i></button>
+    </div>
+  </div>
+
+  <script src="sequence.js"></script>
+  <script src="musicplayer.js"></script>
+</body>
+</html>
