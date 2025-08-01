@@ -28,7 +28,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
         localStorage.setItem('roomId', data.roomId); // ✅ Save this
       }
 
-      window.location.href = 'game.html';
+      window.location.href = 'sequence.html';
     } else {
       alert(data.message || 'Error al unirse al juego.');
     }
