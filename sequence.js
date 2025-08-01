@@ -12,37 +12,67 @@ const cardList = [
   'hearts_jack', 'diamonds_jack', 'spades_jack', 'clubs_jack'
 ];
 
+const socket = io('https://sequence-javascript-game.onrender.com');
 
-const params = new URLSearchParams(window.location.search);
-const playerName = params.get("name") || "Player";
-const playerColor = params.get("color") || "red";
+const playerName = localStorage.getItem('playerName') || 'Player';
+const playerColor = localStorage.getItem('playerColor') || 'red';
+const roomId = localStorage.getItem('roomId');
 
+let opponent = { name: 'Opponent', color: 'gray' };
+let isMyTurn = true;
 let selectedCard = null;
-let playerTurn = 1;
-let sequences = { 1: 0, 2: 0 };
+let sequences = { [playerName]: 0, [opponent.name]: 0 };
 
 const board = document.getElementById('board');
 const playerHand = document.getElementById('player-hand');
 const yourTurnBanner = document.getElementById('your-turn-banner');
+const playerTable = document.getElementById('player-table');
 const cells = [];
 
-function getCurrentColor() {
-  return playerColor;
-}
+socket.emit('join-room', {
+  roomId,
+  player: { name: playerName, color: playerColor }
+});
+
+socket.on('start-game', (players) => {
+  opponent = players.find(p => p.name !== playerName);
+  sequences[opponent.name] = 0;
+  updatePlayerDisplay();
+});
+
+socket.on('opponent-placed-chip', ({ position, color }) => {
+  const [r, c] = position;
+  const chip = document.createElement('div');
+  chip.classList.add('chip');
+  chip.style.backgroundColor = color;
+  cells[r][c].appendChild(chip);
+});
+
+socket.on('opponent-removed-chip', ([r, c]) => {
+  const chip = cells[r][c].querySelector('.chip');
+  if (chip) chip.remove();
+});
+
+socket.on('opponent-turn', () => {
+  isMyTurn = true;
+  updatePlayerDisplay();
+});
 
 function updatePlayerDisplay() {
-  const playerTable = document.querySelector(".player-info table");
   playerTable.innerHTML = `
-    <tr><td><div class="chip small" style="background-color:${playerColor}"></div></td><td>${playerName}</td><td>${sequences[1]} Sequences</td></tr>
-    <tr><td><div class="chip small" style="background-color:gray"></div></td><td>Opponent</td><td>${sequences[2]} Sequences</td></tr>
+    <tr>
+      <td><div class="chip small" style="background-color:${playerColor}"></div></td>
+      <td>${playerName}</td>
+      <td>${sequences[playerName]} Sequences</td>
+    </tr>
+    <tr>
+      <td><div class="chip small" style="background-color:${opponent.color}"></div></td>
+      <td>${opponent.name}</td>
+      <td>${sequences[opponent.name]} Sequences</td>
+    </tr>
   `;
-  yourTurnBanner.textContent = `${playerName}'s Turn`;
-  yourTurnBanner.style.backgroundColor = playerColor;
-}
-
-function switchTurn() {
-  playerTurn = playerTurn === 1 ? 2 : 1;
-  updatePlayerDisplay();
+  yourTurnBanner.textContent = isMyTurn ? `Tu turno, ${playerName}` : `Esperando a ${opponent.name}`;
+  yourTurnBanner.style.backgroundColor = isMyTurn ? playerColor : opponent.color;
 }
 
 function highlightMatchingCards(cardName) {
@@ -119,7 +149,7 @@ function checkForSequence(row, col, color) {
   return false;
 }
 
-// Build board
+// Build the board
 for (let i = 0; i < 10; i++) {
   const row = [];
   for (let j = 0; j < 10; j++) {
@@ -143,20 +173,21 @@ for (let i = 0; i < 10; i++) {
     }
 
     cell.addEventListener('click', () => {
-      if (!selectedCard || cell.dataset.permanent === 'true') return;
+      if (!isMyTurn || !selectedCard || cell.dataset.permanent === 'true') return;
 
       const isJack = selectedCard.includes('jack');
       const isOneEyed = ['hearts_jack', 'spades_jack'].includes(selectedCard);
       const isTwoEyed = ['diamonds_jack', 'clubs_jack'].includes(selectedCard);
-      const color = getCurrentColor();
+      const color = playerColor;
       const chip = cell.querySelector('.chip');
 
       const handleSequence = () => {
         if (checkForSequence(i, j, color)) {
-          sequences[playerTurn]++;
+          sequences[playerName]++;
+          updatePlayerDisplay();
           setTimeout(() => alert(`🎉 ${playerName} formed a sequence!`), 100);
 
-          if (sequences[playerTurn] >= 2) {
+          if (sequences[playerName] >= 2) {
             setTimeout(() => {
               alert(`🏆 ${playerName} wins the game!`);
               document.body.innerHTML = `<h1 style="color:${color}; text-align:center; margin-top:100px;">🏆 ${playerName} Wins!</h1>`;
@@ -168,8 +199,11 @@ for (let i = 0; i < 10; i++) {
       if (isJack && isOneEyed) {
         if (chip && chip.style.backgroundColor !== color && chip.style.backgroundColor !== 'transparent') {
           chip.remove();
+          socket.emit('remove-chip', { roomId, position: [i, j] });
           removeSelectedCard();
-          switchTurn();
+          isMyTurn = false;
+          socket.emit('end-turn', { roomId });
+          updatePlayerDisplay();
         }
       } else if (isJack && isTwoEyed) {
         if (!chip) {
@@ -177,9 +211,12 @@ for (let i = 0; i < 10; i++) {
           newChip.classList.add('chip');
           newChip.style.backgroundColor = color;
           cell.appendChild(newChip);
+          socket.emit('place-chip', { roomId, position: [i, j], card: selectedCard, color });
           removeSelectedCard();
           handleSequence();
-          switchTurn();
+          isMyTurn = false;
+          socket.emit('end-turn', { roomId });
+          updatePlayerDisplay();
         }
       } else {
         if (cell.dataset.card === selectedCard && !chip) {
@@ -187,9 +224,12 @@ for (let i = 0; i < 10; i++) {
           newChip.classList.add('chip');
           newChip.style.backgroundColor = color;
           cell.appendChild(newChip);
+          socket.emit('place-chip', { roomId, position: [i, j], card: selectedCard, color });
           removeSelectedCard();
           handleSequence();
-          switchTurn();
+          isMyTurn = false;
+          socket.emit('end-turn', { roomId });
+          updatePlayerDisplay();
         }
       }
     });
@@ -200,23 +240,22 @@ for (let i = 0; i < 10; i++) {
   cells.push(row);
 }
 
+// Draw starting hand
 cardList.sort(() => 0.5 - Math.random()).slice(0, 7).forEach(drawCard);
 
-// Toggle hand by mouse or 'c'
+// Toggle hand with mouse or 'c'
 let keyCPressed = false;
 
 document.addEventListener("mousemove", (e) => {
   if (keyCPressed) return;
-
   const rect = playerHand.getBoundingClientRect();
-  const buffer = 60; // give some leeway
-
-  const isNearHand =
+  const buffer = 60;
+  const isNearHand = (
     e.clientX >= rect.left - buffer &&
     e.clientX <= rect.right + buffer &&
     e.clientY >= rect.top - buffer &&
-    e.clientY <= rect.bottom + buffer;
-
+    e.clientY <= rect.bottom + buffer
+  );
   playerHand.classList.toggle("visible", isNearHand);
 });
 
@@ -235,4 +274,5 @@ document.addEventListener("keyup", (e) => {
 });
 
 updatePlayerDisplay();
+
 

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Enter Game</title>
+  <meta charset="UTF-8" />
+  <title>Sequence Boardgame</title>
   <link rel="stylesheet" href="login.css" />
 </head>
 <body>
   <div class="login-container">
-    <h1>Nuestro espacio ♡</h1>
+    <h1>Sequence Boardgame</h1>
     <form id="login-form">
       <label for="name">Ingresa tu nombre:</label>
       <input type="text" id="name" required />
@@ -24,13 +24,7 @@
     </form>
   </div>
 
-  <script>
-    document.getElementById('login-form').addEventListener('submit', function (e) {
-      e.preventDefault();
-      const name = encodeURIComponent(document.getElementById('name').value);
-      const color = encodeURIComponent(document.getElementById('color').value);
-      window.location.href = `sequence.html?name=${name}&color=${color}`;
-    });
-  </script>
+  <script src="login.js"></script>
 </body>
 </html>
+

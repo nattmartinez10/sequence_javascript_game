@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="sequence.css" />
   <link rel="stylesheet" href="musicplayer.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.min.css" />
+
 </head>
 <body>
   <div class="main-layout">
@@ -14,29 +15,11 @@
 
     <div class="player-info">
       <h2>Jugadores</h2>
-      <table>
-        <tr><td>Karla</td><td>2 Sequences</td></tr>
-        <tr><td>Nat</td><td>1 Sequence</td></tr>
-      </table>
+      <table id="player-table"></table>
     </div>
 
     <div id="player-hand" class="hand"></div>
-  </div>
-
-  <!-- Music Player -->
-  <div class="music-container" id="music-container">
-    <div class="music-info">
-      <h4 id="title">About you</h4>
-      <div class="progress-container" id="progress-container">
-        <div class="progress" id="progress"></div>
-      </div>
-    </div>
-
-    <audio src="music/aboutyou.mp3" id="audio"></audio>
-
-    <div class="img-container">
-      <img src="images/aboutyou.jpg" alt="music-cover" id="cover" />
-    </div>
+  </div> 
 
     <div class="navigation">
       <button id="prev" class="action-btn"><i class="fas fa-backward"></i></button>
@@ -46,6 +29,8 @@
   </div>
 
   <script src="sequence.js"></script>
-  <script src="musicplayer.js"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
 </body>
 </html>
+
