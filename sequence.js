@@ -1,3 +1,4 @@
+// ======== Card Drawing and Hand Logic ==========
 const cardList = [
   'hearts_jack', 'diamonds_6', 'diamonds_7', 'diamonds_8', 'diamonds_9', 'diamonds_10', 'diamonds_queen', 'diamonds_king', 'diamonds_ace', 'spades_jack',
   'diamonds_5', 'hearts_3', 'hearts_2', 'spades_2', 'spades_3', 'spades_4', 'spades_5', 'spades_6', 'spades_7', 'clubs_ace',
@@ -11,94 +12,6 @@ const cardList = [
   'clubs_jack', 'spades_9', 'spades_8', 'spades_7', 'spades_6', 'spades_5', 'spades_4', 'spades_3', 'spades_2', 'diamonds_jack',
   'hearts_jack', 'diamonds_jack', 'spades_jack', 'clubs_jack'
 ];
-
-const socket = io('https://sequence-javascript-game.onrender.com');
-
-const playerName = localStorage.getItem('playerName') || 'Player';
-const playerColor = localStorage.getItem('playerColor') || 'red';
-const roomId = localStorage.getItem('roomId') || 'default-room';
-
-let players = [];
-let isTeamMode = false;
-let isMyTurn = true;
-let selectedCard = null;
-let sequences = {};
-const teamMap = {};
-
-const board = document.getElementById('board');
-const playerHand = document.getElementById('player-hand');
-const yourTurnBanner = document.getElementById('your-turn-banner');
-const playerTable = document.getElementById('player-table');
-const cells = [];
-
-socket.emit('join-room', {
-  roomId,
-  player: { name: playerName, color: playerColor }
-});
-
-socket.on('start-game', (playerList) => {
-  players = playerList;
-  isTeamMode = players.length === 4;
-
-  sequences = {};
-  players.forEach(p => {
-    sequences[p.name] = 0;
-  });
-
-  if (isTeamMode) {
-    teamMap[playerList[0].name] = 'Team A';
-    teamMap[playerList[1].name] = 'Team B';
-    teamMap[playerList[2].name] = 'Team A';
-    teamMap[playerList[3].name] = 'Team B';
-  }
-
-  updatePlayerDisplay();
-});
-
-socket.on('opponent-placed-chip', ({ position, color }) => {
-  const [r, c] = position;
-  const chip = document.createElement('div');
-  chip.classList.add('chip');
-  chip.style.backgroundColor = color;
-  cells[r][c].appendChild(chip);
-});
-
-socket.on('opponent-removed-chip', ([r, c]) => {
-  const chip = cells[r][c].querySelector('.chip');
-  if (chip) chip.remove();
-});
-
-socket.on('opponent-turn', () => {
-  isMyTurn = true;
-  updatePlayerDisplay();
-});
-
-socket.on('game-over', (winner) => {
-  setTimeout(() => {
-    alert(`🏆 ${winner} wins the game!`);
-    document.body.innerHTML = `<h1 style="color:${playerColor}; text-align:center; margin-top:100px;">🏆 ${winner} Wins!</h1>`;
-  }, 200);
-});
-
-function updatePlayerDisplay() {
-  let html = '';
-  if (isTeamMode) {
-    html += `<tr><td colspan="3" style="text-align:center; font-weight:bold;">Team A vs Team B</td></tr>`;
-  }
-  players.forEach(p => {
-    const team = isTeamMode ? teamMap[p.name] : '';
-    html += `
-      <tr>
-        <td><div class="chip small" style="background-color:${p.color}"></div></td>
-        <td>${p.name} ${team ? `(${team})` : ''}</td>
-        <td>${sequences[p.name]} Sequences</td>
-      </tr>`;
-  });
-  playerTable.innerHTML = html;
-
-  yourTurnBanner.textContent = isMyTurn ? `Tu turno, ${playerName}` : `Esperando...`;
-  yourTurnBanner.style.backgroundColor = isMyTurn ? playerColor : 'gray';
-}
 
 function drawCard() {
   const randomCard = cardList[Math.floor(Math.random() * cardList.length)];
@@ -174,7 +87,7 @@ function checkForSequence(row, col, color) {
   return false;
 }
 
-// Board generation
+// ======== Board Creation ==========
 for (let i = 0; i < 10; i++) {
   const row = [];
   for (let j = 0; j < 10; j++) {
@@ -260,7 +173,7 @@ for (let i = 0; i < 10; i++) {
 
 cardList.sort(() => 0.5 - Math.random()).slice(0, 7).forEach(drawCard);
 
-// Toggle hand animation
+// ======== Hand Hover Toggle ==========
 let keyCPressed = false;
 
 document.addEventListener("mousemove", (e) => {

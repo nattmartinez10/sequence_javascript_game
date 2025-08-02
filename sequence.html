@@ -5,10 +5,11 @@
   <title>Sequence Game</title>
   <link rel="stylesheet" href="sequence.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.min.css" />
-
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body>
   <div class="main-layout">
+    <div id="room-id" class="turn-banner" style="background:#444; font-size:1rem;"></div>
     <div id="your-turn-banner" class="turn-banner"></div>
     <div id="board" class="board"></div>
 
@@ -20,17 +21,13 @@
     <div id="player-hand" class="hand"></div>
   </div> 
 
-    <div class="navigation">
-      <button id="prev" class="action-btn"><i class="fas fa-backward"></i></button>
-      <button id="play" class="action-btn action-btn-big"><i class="fas fa-play"></i></button>
-      <button id="next" class="action-btn"><i class="fas fa-forward"></i></button>
-    </div>
+  <div class="navigation">
+    <button id="prev" class="action-btn"><i class="fas fa-backward"></i></button>
+    <button id="play" class="action-btn action-btn-big"><i class="fas fa-play"></i></button>
+    <button id="next" class="action-btn"><i class="fas fa-forward"></i></button>
   </div>
 
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script src="sequence.js"></script>
-
-
 </body>
 </html>
 
