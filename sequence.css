@@ -1,190 +1,128 @@
 body {
-  font-family: 'Segoe UI', sans-serif;
   margin: 0;
+  font-family: 'Segoe UI', sans-serif;
   background-color: #1e4d35;
   color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+.turn-banner {
+  background-color: gray;
+  padding: 10px 20px;
+  font-size: 1.3em;
+  margin: 15px 0;
+  border-radius: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.table-container {
+  margin-bottom: 10px;
+}
+
+#player-table {
+  border-collapse: collapse;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
   overflow: hidden;
 }
 
-.main-layout {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  grid-template-rows: auto 1fr auto;
-  grid-template-areas:
-    "banner banner banner"
-    "info board ."
-    ".    hand  .";
-  height: 100vh;
-  gap: 10px;
-  padding: 10px;
-  padding-top: 30px;
-  box-sizing: border-box;
-}
-
-/* === Turn Banner === */
-.turn-banner {
-  grid-area: banner;
-  margin: 0 auto;
-  padding: 10px 20px;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: white;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  background-color: gray;
-  width: fit-content;
-}
-
-/* === Game ID === */
-.room-id {
-  grid-column: 1 / -1;
+#player-table td {
+  padding: 10px 15px;
   text-align: center;
-  margin-top: -10px;
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: gold;
+  font-size: 1em;
+  border-bottom: 1px solid #444;
 }
 
-/* === Game Board === */
 .board {
   display: grid;
-  grid-area: board;
-  grid-template-columns: repeat(10, 42px);
-  grid-template-rows: repeat(10, 42px);
-  gap: 3px;
-  transition: transform 0.3s ease;
+  grid-template-columns: repeat(10, 64px);
+  grid-template-rows: repeat(10, 64px);
+  gap: 2px;
+  margin: 20px 0;
 }
 
 .cell {
-  width: 42px;
-  height: 42px;
-  background-color: #006400;
+  width: 64px;
+  height: 64px;
+  background-color: #0c2b20;
+  border-radius: 6px;
+  overflow: hidden;
   position: relative;
-  transition: transform 0.2s ease;
+  cursor: pointer;
+  transition: transform 0.1s;
 }
 
 .cell:hover {
-  z-index: 10;
-  transform: scale(1.8);
-  box-shadow: 0 0 8px black;
+  transform: scale(1.05);
 }
 
 .cell img.card {
   width: 100%;
   height: 100%;
+  object-fit: cover;
   pointer-events: none;
 }
 
-.cell .chip {
+.chip {
   position: absolute;
-  width: 18px;
-  height: 18px;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
   background-color: red;
   border-radius: 50%;
-  top: 12px;
-  left: 12px;
-  z-index: 5;
-  box-shadow: 0 0 3px #000;
-}
-
-.cell.highlight {
-  outline: 2px solid yellow;
-  box-shadow: 0 0 10px yellow;
+  transform: translate(-50%, -50%);
   z-index: 2;
+  border: 2px solid white;
 }
 
-.cell[data-permanent="true"] .chip {
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* === Hand (Deck Cards) === */
 .hand {
+  position: fixed;
+  bottom: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.85);
+  padding: 15px;
+  border-radius: 15px;
   display: flex;
-  gap: 8px;
-  position: absolute;
-  bottom: 0;
-  right: 20px;
-  transform: translateY(100%);
-  z-index: 10;
-  padding: 10px 20px;
-  background-color: rgba(0, 0, 0, 0.6);
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  transition: transform 0.3s ease;
+  gap: 10px;
+  transition: bottom 0.3s ease;
+  z-index: 999;
 }
 
 .hand.visible {
-  transform: translateY(0%);
+  bottom: 20px;
 }
 
 .hand img {
-  width: 60px;
-  cursor: pointer;
+  width: 80px;
+  height: 120px;
+  object-fit: contain;
   border: 2px solid transparent;
-  border-radius: 6px;
-  transition: transform 0.3s ease;
-}
-
-.hand img:hover {
-  transform: scale(1.05);
+  border-radius: 10px;
+  cursor: pointer;
 }
 
 .hand img.selected {
-  border: 2px solid yellow;
+  border-color: white;
+  transform: scale(1.05);
 }
 
-/* === Player Info Table === */
-.player-info {
-  width: 200px;
-  grid-area: info;
-  align-self: start;
-  background: #333;
-  border-radius: 10px;
-  padding: 12px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
-}
-
-.player-info table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.95em;
-}
-
-.player-info td {
-  padding: 6px 10px;
-  border-bottom: 1px solid #555;
-  text-align: left;
-}
-
-/* === Winning Glow === */
 .sequence-glow {
-  box-shadow: 0 0 12px 5px yellow;
-  animation: pulse 1s infinite alternate;
+  box-shadow: 0 0 15px 5px gold;
+  border: 2px solid gold;
 }
 
-@keyframes pulse {
-  0% { box-shadow: 0 0 12px 5px yellow; }
-  100% { box-shadow: 0 0 20px 10px gold; }
+.game-id-display {
+  font-size: 1.2em;
+  margin-top: 15px;
+  color: #fff;
+  background-color: #2d6a4f;
+  padding: 8px 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
 
-/* === Music Controls === */
-.navigation {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.action-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  margin: 0 10px;
-  cursor: pointer;
-}
-
-.action-btn-big {
-  font-size: 2rem;
-}

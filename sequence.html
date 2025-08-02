@@ -4,23 +4,23 @@
   <meta charset="UTF-8" />
   <title>Sequence Game</title>
   <link rel="stylesheet" href="sequence.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.min.css" />
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body>
-  <div class="main-layout">
-    <div id="your-turn-banner" class="turn-banner"></div>
-    <div id="room-id" class="room-id"></div>
-    <div id="board" class="board"></div>
-
-    <div class="player-info">
-      <table id="player-table"></table>
-    </div>
-
-    <div id="player-hand" class="hand"></div>
+  <div id="game-id" class="game-id-display">
+    <span id="room-id"></span>
   </div>
 
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <div id="your-turn-banner" class="turn-banner">Waiting...</div>
+
+  <div class="table-container">
+    <table id="player-table"></table>
+  </div>
+
+  <div id="board" class="board"></div>
+
+  <div id="player-hand" class="hand"></div>
+
   <script src="sequence.js"></script>
 </body>
 </html>
-

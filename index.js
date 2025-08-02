@@ -11,11 +11,16 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 
   const name = document.getElementById('name').value.trim();
   const color = document.getElementById('color').value;
-  const roomId = document.getElementById('roomId').value.trim();
+  let roomId = document.getElementById('roomId').value.trim();
 
   if (!name) {
     alert('Please enter your name.');
     return;
+  }
+
+  // If no Room ID provided, assign a random one
+  if (!roomId) {
+    roomId = Math.random().toString(36).substring(2, 8); // generates 6-character roomId
   }
 
   try {
@@ -28,11 +33,13 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     const data = await response.json();
 
     if (data.success) {
+      // ✅ Save correct values to localStorage
       localStorage.setItem('playerName', name);
       localStorage.setItem('playerColor', color);
-      localStorage.setItem('roomId', data.roomId);
+      localStorage.setItem('roomId', roomId); // fixed this line!
 
-      window.location.href = 'sequence.html';
+      // ✅ Redirect with roomId in URL (optional but helpful for debugging)
+      window.location.href = `sequence.html?roomId=${roomId}`;
     } else {
       alert(data.message || 'Failed to join game.');
     }

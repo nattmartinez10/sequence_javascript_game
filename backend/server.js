@@ -4,13 +4,26 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 
 const app = express();
+
+const allowedOrigins = [
+  'https://sequence-javascript-game-c9tm5c0z1-nattmartinez10s-projects.vercel.app'
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
+
+app.use(express.json());
+
 const server = createServer(app);
 const io = new Server(server, {
-  cors: { origin: '*' }
+  cors: {
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
 });
-
-app.use(cors());
-app.use(express.json());
 
 const rooms = {}; // roomId => { players, turnIndex, teamMode, sequences }
 
@@ -108,3 +121,4 @@ io.on('connection', (socket) => {
 server.listen(3000, () => {
   console.log('🚀 Server running on port 3000');
 });
+
