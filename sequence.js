@@ -16,12 +16,14 @@ const socket = io('https://sequence-javascript-game.onrender.com');
 
 const playerName = localStorage.getItem('playerName') || 'Player';
 const playerColor = localStorage.getItem('playerColor') || 'red';
-const roomId = localStorage.getItem('roomId');
+const roomId = localStorage.getItem('roomId') || 'default-room';
 
-let opponent = { name: 'Opponent', color: 'gray' };
+let players = [];
+let isTeamMode = false;
 let isMyTurn = true;
 let selectedCard = null;
-let sequences = { [playerName]: 0, [opponent.name]: 0 };
+let sequences = {};
+const teamMap = {};
 
 const board = document.getElementById('board');
 const playerHand = document.getElementById('player-hand');
@@ -34,9 +36,22 @@ socket.emit('join-room', {
   player: { name: playerName, color: playerColor }
 });
 
-socket.on('start-game', (players) => {
-  opponent = players.find(p => p.name !== playerName);
-  sequences[opponent.name] = 0;
+socket.on('start-game', (playerList) => {
+  players = playerList;
+  isTeamMode = players.length === 4;
+
+  sequences = {};
+  players.forEach(p => {
+    sequences[p.name] = 0;
+  });
+
+  if (isTeamMode) {
+    teamMap[playerList[0].name] = 'Team A';
+    teamMap[playerList[1].name] = 'Team B';
+    teamMap[playerList[2].name] = 'Team A';
+    teamMap[playerList[3].name] = 'Team B';
+  }
+
   updatePlayerDisplay();
 });
 
@@ -58,31 +73,31 @@ socket.on('opponent-turn', () => {
   updatePlayerDisplay();
 });
 
-function updatePlayerDisplay() {
-  playerTable.innerHTML = `
-    <tr>
-      <td><div class="chip small" style="background-color:${playerColor}"></div></td>
-      <td>${playerName}</td>
-      <td>${sequences[playerName]} Sequences</td>
-    </tr>
-    <tr>
-      <td><div class="chip small" style="background-color:${opponent.color}"></div></td>
-      <td>${opponent.name}</td>
-      <td>${sequences[opponent.name]} Sequences</td>
-    </tr>
-  `;
-  yourTurnBanner.textContent = isMyTurn ? `Tu turno, ${playerName}` : `Esperando a ${opponent.name}`;
-  yourTurnBanner.style.backgroundColor = isMyTurn ? playerColor : opponent.color;
-}
+socket.on('game-over', (winner) => {
+  setTimeout(() => {
+    alert(`🏆 ${winner} wins the game!`);
+    document.body.innerHTML = `<h1 style="color:${playerColor}; text-align:center; margin-top:100px;">🏆 ${winner} Wins!</h1>`;
+  }, 200);
+});
 
-function highlightMatchingCards(cardName) {
-  document.querySelectorAll('.cell').forEach(cell => {
-    if (cell.dataset.card === cardName && !cell.querySelector('.chip') && cell.dataset.permanent !== 'true') {
-      cell.classList.add('highlight');
-    } else {
-      cell.classList.remove('highlight');
-    }
+function updatePlayerDisplay() {
+  let html = '';
+  if (isTeamMode) {
+    html += `<tr><td colspan="3" style="text-align:center; font-weight:bold;">Team A vs Team B</td></tr>`;
+  }
+  players.forEach(p => {
+    const team = isTeamMode ? teamMap[p.name] : '';
+    html += `
+      <tr>
+        <td><div class="chip small" style="background-color:${p.color}"></div></td>
+        <td>${p.name} ${team ? `(${team})` : ''}</td>
+        <td>${sequences[p.name]} Sequences</td>
+      </tr>`;
   });
+  playerTable.innerHTML = html;
+
+  yourTurnBanner.textContent = isMyTurn ? `Tu turno, ${playerName}` : `Esperando...`;
+  yourTurnBanner.style.backgroundColor = isMyTurn ? playerColor : 'gray';
 }
 
 function drawCard() {
@@ -107,6 +122,16 @@ function removeSelectedCard() {
   selectedCard = null;
   document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('highlight'));
   if (playerHand.children.length < 7) drawCard();
+}
+
+function highlightMatchingCards(cardName) {
+  document.querySelectorAll('.cell').forEach(cell => {
+    if (cell.dataset.card === cardName && !cell.querySelector('.chip') && cell.dataset.permanent !== 'true') {
+      cell.classList.add('highlight');
+    } else {
+      cell.classList.remove('highlight');
+    }
+  });
 }
 
 function highlightWinningSequence(chain) {
@@ -149,7 +174,7 @@ function checkForSequence(row, col, color) {
   return false;
 }
 
-// Build the board
+// Board generation
 for (let i = 0; i < 10; i++) {
   const row = [];
   for (let j = 0; j < 10; j++) {
@@ -185,14 +210,7 @@ for (let i = 0; i < 10; i++) {
         if (checkForSequence(i, j, color)) {
           sequences[playerName]++;
           updatePlayerDisplay();
-          setTimeout(() => alert(`🎉 ${playerName} formed a sequence!`), 100);
-
-          if (sequences[playerName] >= 2) {
-            setTimeout(() => {
-              alert(`🏆 ${playerName} wins the game!`);
-              document.body.innerHTML = `<h1 style="color:${color}; text-align:center; margin-top:100px;">🏆 ${playerName} Wins!</h1>`;
-            }, 200);
-          }
+          socket.emit('add-sequence', { roomId, playerName });
         }
       };
 
@@ -240,10 +258,9 @@ for (let i = 0; i < 10; i++) {
   cells.push(row);
 }
 
-// Draw starting hand
 cardList.sort(() => 0.5 - Math.random()).slice(0, 7).forEach(drawCard);
 
-// Toggle hand with mouse or 'c'
+// Toggle hand animation
 let keyCPressed = false;
 
 document.addEventListener("mousemove", (e) => {
@@ -274,5 +291,3 @@ document.addEventListener("keyup", (e) => {
 });
 
 updatePlayerDisplay();
-
-

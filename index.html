@@ -9,16 +9,19 @@
   <div class="login-container">
     <h1>Sequence Boardgame</h1>
     <form id="login-form">
-      <label for="name">Ingresa tu nombre:</label>
+      <label for="name">Enter your name:</label>
       <input type="text" id="name" required />
 
-      <label for="color">Elige el color de tu ficha:</label>
+      <label for="color">Choose your chip color:</label>
       <select id="color" required>
-        <option value="red">Rojo</option>
-        <option value="blue">Azul</option>
-        <option value="green">Verde</option>
-        <option value="yellow">Amarillo</option>
+        <option value="red">Red</option>
+        <option value="blue">Blue</option>
+        <option value="green">Green</option>
+        <option value="yellow">Yellow</option>
       </select>
+
+      <label for="roomId">Room ID (optional):</label>
+      <input type="text" id="roomId" placeholder="Leave blank for random match" />
 
       <button type="submit">Enter</button>
     </form>
@@ -27,4 +30,3 @@
   <script src="index.js"></script>
 </body>
 </html>
-

@@ -1,10 +1,10 @@
-const express = require('express');
-const cors = require('cors');
-const http = require('http');
-const { Server } = require('socket.io');
+import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import cors from 'cors';
 
 const app = express();
-const server = http.createServer(app);
+const server = createServer(app);
 const io = new Server(server, {
   cors: { origin: '*' }
 });
@@ -12,63 +12,99 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-let waitingPlayer = null;
-let gameRooms = {}; // roomID -> [player1, player2]
+const rooms = {}; // roomId => { players, turnIndex, teamMode, sequences }
 
 app.post('/join', (req, res) => {
-  const { name, color } = req.body;
-
-  if (!name || !color) {
-    return res.status(400).json({ success: false, message: 'Name and color required.' });
+  const { name, color, roomId } = req.body;
+  if (!rooms[roomId]) {
+    rooms[roomId] = {
+      players: [],
+      turnIndex: 0,
+      teamMode: false,
+      sequences: {},
+    };
   }
 
-  if (!waitingPlayer) {
-    waitingPlayer = { name, color };
-    return res.json({ success: true, message: 'Waiting for second player...' });
-  } else {
-    const roomId = `room-${Date.now()}`;
-    gameRooms[roomId] = [waitingPlayer, { name, color }];
-    const players = gameRooms[roomId];
-    waitingPlayer = null;
+  const room = rooms[roomId];
 
-    return res.json({
-      success: true,
-      message: 'Game starting!',
-      players,
-      roomId
-    });
+  if (room.players.length >= 4) {
+    return res.json({ success: false, message: 'Room full (4 players max).' });
   }
+
+  const alreadyInRoom = room.players.some(p => p.name === name);
+  if (alreadyInRoom) {
+    return res.json({ success: true, message: 'Rejoining...' });
+  }
+
+  room.players.push({ name, color });
+  room.sequences[name] = 0;
+  room.teamMode = room.players.length === 4;
+
+  res.json({ success: true, message: room.players.length < 2 ? 'Waiting for others...' : 'Joining game...' });
 });
 
 io.on('connection', (socket) => {
-  console.log('🔌 A player connected');
-
   socket.on('join-room', ({ roomId, player }) => {
     socket.join(roomId);
-    console.log(`🧍 ${player.name} joined ${roomId}`);
+    const room = rooms[roomId];
+    socket.player = player;
+    socket.roomId = roomId;
 
-    // Notify both players once the room is full
-    if (io.sockets.adapter.rooms.get(roomId)?.size === 2) {
-      io.to(roomId).emit('start-game', gameRooms[roomId]);
+    if (room.players.length >= 2) {
+      io.to(roomId).emit('start-game', room.players);
+      io.to(roomId).emit('opponent-turn');
     }
   });
 
-  socket.on('place-chip', ({ roomId, position, card, color }) => {
-    socket.to(roomId).emit('opponent-placed-chip', { position, card, color });
+  socket.on('place-chip', ({ roomId, position, color }) => {
+    socket.to(roomId).emit('opponent-placed-chip', { position, color });
   });
 
   socket.on('remove-chip', ({ roomId, position }) => {
     socket.to(roomId).emit('opponent-removed-chip', position);
   });
 
-  socket.on('end-turn', ({ roomId }) => {
-    socket.to(roomId).emit('opponent-turn');
+  socket.on('add-sequence', ({ roomId, playerName }) => {
+    const room = rooms[roomId];
+    room.sequences[playerName]++;
+
+    const teamMode = room.teamMode;
+    let gameOver = false;
+    let winner = '';
+
+    if (teamMode) {
+      const teamA = room.players.filter((_, i) => i % 2 === 0).map(p => p.name);
+      const teamB = room.players.filter((_, i) => i % 2 === 1).map(p => p.name);
+
+      const teamAScore = teamA.reduce((sum, name) => sum + room.sequences[name], 0);
+      const teamBScore = teamB.reduce((sum, name) => sum + room.sequences[name], 0);
+
+      if (teamAScore >= 2) {
+        gameOver = true;
+        winner = 'Team A';
+      } else if (teamBScore >= 2) {
+        gameOver = true;
+        winner = 'Team B';
+      }
+    } else {
+      if (room.sequences[playerName] >= 2) {
+        gameOver = true;
+        winner = playerName;
+      }
+    }
+
+    if (gameOver) {
+      io.to(roomId).emit('game-over', winner);
+    }
   });
 
-  socket.on('disconnect', () => {
-    console.log('❌ Player disconnected');
+  socket.on('end-turn', ({ roomId }) => {
+    const room = rooms[roomId];
+    room.turnIndex = (room.turnIndex + 1) % room.players.length;
+    io.to(roomId).emit('opponent-turn');
   });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+server.listen(3000, () => {
+  console.log('🚀 Server running on port 3000');
+});
