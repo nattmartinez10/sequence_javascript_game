@@ -4,9 +4,15 @@ body {
   background-color: #1e4d35;
   color: white;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   overflow-x: hidden;
+}
+
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  align-items: flex-start;
+  width: 250px;
 }
 
 .turn-banner {
@@ -41,7 +47,7 @@ body {
   grid-template-columns: repeat(10, 64px);
   grid-template-rows: repeat(10, 64px);
   gap: 2px;
-  margin: 20px 0;
+  margin: 20px;
 }
 
 .cell {
@@ -118,11 +124,26 @@ body {
 
 .game-id-display {
   font-size: 1.2em;
-  margin-top: 15px;
   color: #fff;
   background-color: #2d6a4f;
   padding: 8px 20px;
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.start-btn {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 1em;
+  background-color: #52b788;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.start-btn:hover {
+  background-color: #40916c;
 }
 

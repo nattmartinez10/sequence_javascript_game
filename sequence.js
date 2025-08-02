@@ -1,4 +1,4 @@
-const cardList = [ 
+const cardList = [
   'hearts_jack', 'diamonds_6', 'diamonds_7', 'diamonds_8', 'diamonds_9', 'diamonds_10', 'diamonds_queen', 'diamonds_king', 'diamonds_ace', 'spades_jack',
   'diamonds_5', 'hearts_3', 'hearts_2', 'spades_2', 'spades_3', 'spades_4', 'spades_5', 'spades_6', 'spades_7', 'clubs_ace',
   'diamonds_4', 'hearts_4', 'diamonds_king', 'diamonds_ace', 'clubs_ace', 'clubs_king', 'clubs_queen', 'clubs_10', 'spades_8', 'clubs_king',
@@ -30,7 +30,21 @@ const board = document.getElementById('board');
 const playerHand = document.getElementById('player-hand');
 const yourTurnBanner = document.getElementById('your-turn-banner');
 const playerTable = document.getElementById('player-table');
-const gameIdText = document.getElementById('game-id-text');
+const roomEl = document.getElementById('room-id');
+
+// Start Game button
+const startBtn = document.createElement('button');
+startBtn.textContent = 'Start Game';
+startBtn.style.marginTop = '10px';
+startBtn.style.padding = '8px 16px';
+startBtn.style.fontSize = '1em';
+startBtn.style.cursor = 'pointer';
+startBtn.style.borderRadius = '8px';
+startBtn.style.border = 'none';
+startBtn.style.backgroundColor = '#4caf50';
+startBtn.style.color = 'white';
+startBtn.style.display = 'none';
+document.body.insertBefore(startBtn, board);
 
 socket.emit('join-room', {
   roomId,
@@ -40,11 +54,9 @@ socket.emit('join-room', {
 socket.on('start-game', (playerList) => {
   players = playerList;
   isTeamMode = players.length === 4;
-
   sequences = {};
-  players.forEach(p => {
-    sequences[p.name] = 0;
-  });
+
+  players.forEach(p => sequences[p.name] = 0);
 
   if (isTeamMode) {
     teamMap[players[0].name] = 'Team A';
@@ -54,7 +66,8 @@ socket.on('start-game', (playerList) => {
   }
 
   updatePlayerDisplay();
-  gameIdText.textContent = roomId;
+  drawInitialCards();
+  startBtn.style.display = 'none';
 });
 
 socket.on('your-turn', () => {
@@ -83,102 +96,23 @@ socket.on('game-over', (winner) => {
 });
 
 function updatePlayerDisplay() {
-  const table = document.getElementById('player-table');
-  const roomEl = document.getElementById('room-id');
-  
   roomEl.textContent = `Game ID: ${roomId}`;
 
   let html = '';
   players.forEach(p => {
-    html += `
-      <tr>
-        <td>${p.name}</td>
-        <td>${sequences[p.name]} sequences</td>
-      </tr>`;
+    html += `<tr><td>${p.name}</td><td>${sequences[p.name]} sequences</td></tr>`;
   });
-
-  table.innerHTML = html;
+  playerTable.innerHTML = html;
 
   yourTurnBanner.textContent = isMyTurn ? `Your turn, ${playerName}` : `Waiting...`;
   yourTurnBanner.style.backgroundColor = isMyTurn ? playerColor : 'gray';
-}
 
-
-function drawCard() {
-  const randomCard = cardList[Math.floor(Math.random() * cardList.length)];
-  const img = document.createElement('img');
-  img.src = `cards/${randomCard}.png`;
-  img.dataset.card = randomCard;
-
-  img.addEventListener('click', () => {
-    document.querySelectorAll('.hand img').forEach(el => el.classList.remove('selected'));
-    selectedCard = selectedCard === randomCard ? null : randomCard;
-    if (selectedCard) img.classList.add('selected');
-    highlightMatchingCards(randomCard);
-  });
-
-  playerHand.appendChild(img);
-}
-
-function removeSelectedCard() {
-  const cardImg = document.querySelector(`#player-hand img[data-card="${selectedCard}"]`);
-  if (cardImg) cardImg.remove();
-  selectedCard = null;
-  document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('highlight'));
-  if (playerHand.children.length < 7) drawCard();
-}
-
-function highlightMatchingCards(cardName) {
-  document.querySelectorAll('.cell').forEach(cell => {
-    if (cell.dataset.card === cardName && !cell.querySelector('.chip') && cell.dataset.permanent !== 'true') {
-      cell.classList.add('highlight');
-    } else {
-      cell.classList.remove('highlight');
-    }
-  });
-}
-
-function highlightWinningSequence(chain) {
-  chain.forEach(([r, c]) => {
-    const cell = cells[r][c];
-    cell.classList.add('sequence-glow');
-  });
-}
-
-function checkForSequence(row, col, color) {
-  const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
-
-  for (const [dr, dc] of directions) {
-    let chain = [[row, col]];
-
-    for (let step = 1; step < 5; step++) {
-      const r = row + dr * step;
-      const c = col + dc * step;
-      if (r < 0 || r >= 10 || c < 0 || c >= 10) break;
-      const chip = cells[r][c]?.querySelector('.chip');
-      if (!chip || chip.style.backgroundColor !== color) break;
-      chain.push([r, c]);
-    }
-
-    for (let step = 1; step < 5; step++) {
-      const r = row - dr * step;
-      const c = col - dc * step;
-      if (r < 0 || r >= 10 || c < 0 || c >= 10) break;
-      const chip = cells[r][c]?.querySelector('.chip');
-      if (!chip || chip.style.backgroundColor !== color) break;
-      chain.push([r, c]);
-    }
-
-    if (chain.length >= 5) {
-      highlightWinningSequence(chain);
-      return true;
-    }
+  if (players.length >= 2 && players[0].name === playerName) {
+    startBtn.style.display = 'inline-block';
   }
-
-  return false;
 }
 
-// === Generate board ===
+// === Board generation ===
 for (let i = 0; i < 10; i++) {
   const row = [];
   for (let j = 0; j < 10; j++) {
@@ -222,35 +156,19 @@ for (let i = 0; i < 10; i++) {
           chip.remove();
           socket.emit('remove-chip', { roomId, position: [i, j] });
           removeSelectedCard();
-          isMyTurn = false;
-          socket.emit('end-turn', { roomId });
-          updatePlayerDisplay();
+          endTurn();
         }
       } else if (isJack && isTwoEyed) {
         if (!chip) {
-          const newChip = document.createElement('div');
-          newChip.classList.add('chip');
-          newChip.style.backgroundColor = playerColor;
-          cell.appendChild(newChip);
-          socket.emit('place-chip', { roomId, position: [i, j], card: selectedCard, color: playerColor });
-          removeSelectedCard();
+          placeChip(cell);
           handleSequence();
-          isMyTurn = false;
-          socket.emit('end-turn', { roomId });
-          updatePlayerDisplay();
+          endTurn();
         }
       } else {
         if (cell.dataset.card === selectedCard && !chip) {
-          const newChip = document.createElement('div');
-          newChip.classList.add('chip');
-          newChip.style.backgroundColor = playerColor;
-          cell.appendChild(newChip);
-          socket.emit('place-chip', { roomId, position: [i, j], card: selectedCard, color: playerColor });
-          removeSelectedCard();
+          placeChip(cell);
           handleSequence();
-          isMyTurn = false;
-          socket.emit('end-turn', { roomId });
-          updatePlayerDisplay();
+          endTurn();
         }
       }
     });
@@ -261,8 +179,100 @@ for (let i = 0; i < 10; i++) {
   cells.push(row);
 }
 
-// Draw initial 7 cards
-cardList.sort(() => 0.5 - Math.random()).slice(0, 7).forEach(drawCard);
+function placeChip(cell) {
+  const chip = document.createElement('div');
+  chip.classList.add('chip');
+  chip.style.backgroundColor = playerColor;
+  cell.appendChild(chip);
+  const [r, c] = findCell(cell);
+  socket.emit('place-chip', { roomId, position: [r, c], card: selectedCard, color: playerColor });
+  removeSelectedCard();
+}
+
+function findCell(cell) {
+  for (let i = 0; i < cells.length; i++) {
+    const col = cells[i].indexOf(cell);
+    if (col !== -1) return [i, col];
+  }
+  return [-1, -1];
+}
+
+function endTurn() {
+  isMyTurn = false;
+  socket.emit('end-turn', { roomId });
+  updatePlayerDisplay();
+}
+
+function drawCard() {
+  const randomCard = cardList[Math.floor(Math.random() * cardList.length)];
+  const img = document.createElement('img');
+  img.src = `cards/${randomCard}.png`;
+  img.dataset.card = randomCard;
+
+  img.addEventListener('click', () => {
+    document.querySelectorAll('.hand img').forEach(el => el.classList.remove('selected'));
+    selectedCard = selectedCard === randomCard ? null : randomCard;
+    if (selectedCard) img.classList.add('selected');
+    highlightMatchingCards(randomCard);
+  });
+
+  playerHand.appendChild(img);
+}
+
+function drawInitialCards() {
+  playerHand.innerHTML = '';
+  cardList.sort(() => 0.5 - Math.random()).slice(0, 7).forEach(drawCard);
+}
+
+function removeSelectedCard() {
+  const cardImg = document.querySelector(`#player-hand img[data-card="${selectedCard}"]`);
+  if (cardImg) cardImg.remove();
+  selectedCard = null;
+  document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('highlight'));
+  if (playerHand.children.length < 7) drawCard();
+}
+
+function highlightMatchingCards(cardName) {
+  document.querySelectorAll('.cell').forEach(cell => {
+    if (cell.dataset.card === cardName && !cell.querySelector('.chip') && cell.dataset.permanent !== 'true') {
+      cell.classList.add('highlight');
+    } else {
+      cell.classList.remove('highlight');
+    }
+  });
+}
+
+function checkForSequence(row, col, color) {
+  const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
+
+  for (const [dr, dc] of directions) {
+    let chain = [[row, col]];
+
+    for (let step = 1; step < 5; step++) {
+      const r = row + dr * step;
+      const c = col + dc * step;
+      if (r < 0 || r >= 10 || c < 0 || c >= 10) break;
+      const chip = cells[r][c]?.querySelector('.chip');
+      if (!chip || chip.style.backgroundColor !== color) break;
+      chain.push([r, c]);
+    }
+
+    for (let step = 1; step < 5; step++) {
+      const r = row - dr * step;
+      const c = col - dc * step;
+      if (r < 0 || r >= 10 || c < 0 || c >= 10) break;
+      const chip = cells[r][c]?.querySelector('.chip');
+      if (!chip || chip.style.backgroundColor !== color) break;
+      chain.push([r, c]);
+    }
+
+    if (chain.length >= 5) {
+      chain.forEach(([r, c]) => cells[r][c].classList.add('sequence-glow'));
+      return true;
+    }
+  }
+  return false;
+}
 
 // Hand visibility
 let keyCPressed = false;
@@ -271,12 +281,11 @@ document.addEventListener("mousemove", (e) => {
   if (keyCPressed) return;
   const rect = playerHand.getBoundingClientRect();
   const buffer = 60;
-  const isNearHand = (
+  const isNearHand =
     e.clientX >= rect.left - buffer &&
     e.clientX <= rect.right + buffer &&
     e.clientY >= rect.top - buffer &&
-    e.clientY <= rect.bottom + buffer
-  );
+    e.clientY <= rect.bottom + buffer;
   playerHand.classList.toggle("visible", isNearHand);
 });
 
@@ -294,4 +303,11 @@ document.addEventListener("keyup", (e) => {
   }
 });
 
-updatePlayerDisplay();
+// Start Game Button logic
+startBtn.addEventListener('click', () => {
+  if (players.length >= 2) {
+    socket.emit('start-game', players);
+  } else {
+    alert('At least 2 players are required to start the game.');
+  }
+});

@@ -7,20 +7,24 @@
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body>
-  <div id="game-id" class="game-id-display">
-    <span id="room-id"></span>
-  </div>
+  <div class="left-panel">
+    <div id="game-id" class="game-id-display">
+      <span id="room-id"></span>
+    </div>
 
-  <div id="your-turn-banner" class="turn-banner">Waiting...</div>
+    <div id="your-turn-banner" class="turn-banner">Waiting...</div>
 
-  <div class="table-container">
-    <table id="player-table"></table>
+    <div class="table-container">
+      <table id="player-table"></table>
+    </div>
+
+    <button id="start-game-btn" class="start-btn">Start Game</button>
   </div>
 
   <div id="board" class="board"></div>
-
   <div id="player-hand" class="hand"></div>
 
   <script src="sequence.js"></script>
 </body>
 </html>
+

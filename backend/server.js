@@ -60,7 +60,11 @@ app.post('/join', (req, res) => {
   room.sequences[name] = 0;
   room.teamMode = room.players.length === 4;
 
-  res.json({ success: true, message: room.players.length < 2 ? 'Waiting for others...' : 'Joining game...', roomId });
+  res.json({
+    success: true,
+    message: room.players.length < 2 ? 'Waiting for others...' : 'Joining game...',
+    roomId
+  });
 });
 
 io.on('connection', (socket) => {
@@ -69,10 +73,23 @@ io.on('connection', (socket) => {
     const room = rooms[roomId];
     socket.player = player;
     socket.roomId = roomId;
+  });
 
-    if (room.players.length >= 2) {
-      io.to(roomId).emit('start-game', room.players);
-      io.to(roomId).emit('opponent-turn');
+  // ✅ NEW: handle the "start-game" button press
+  socket.on('start-game', () => {
+    const room = rooms[socket.roomId];
+    if (!room || room.players.length < 2) return;
+
+    io.to(socket.roomId).emit('start-game', room.players);
+
+    const firstPlayer = room.players[room.turnIndex];
+    const sockets = Array.from(io.sockets.sockets.values());
+    const firstSocket = sockets.find(s =>
+      s.roomId === socket.roomId && s.player?.name === firstPlayer.name
+    );
+
+    if (firstSocket) {
+      firstSocket.emit('your-turn');
     }
   });
 
@@ -122,6 +139,16 @@ io.on('connection', (socket) => {
     const room = rooms[roomId];
     room.turnIndex = (room.turnIndex + 1) % room.players.length;
     io.to(roomId).emit('opponent-turn');
+
+    const nextPlayer = room.players[room.turnIndex];
+    const sockets = Array.from(io.sockets.sockets.values());
+    const nextSocket = sockets.find(s =>
+      s.roomId === roomId && s.player?.name === nextPlayer.name
+    );
+
+    if (nextSocket) {
+      nextSocket.emit('your-turn');
+    }
   });
 });
 
