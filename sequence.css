@@ -9,8 +9,9 @@ body {
 .main-layout {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  grid-template-rows: 1fr auto;
+  grid-template-rows: auto 1fr auto;
   grid-template-areas:
+    "banner banner banner"
     "info board ."
     ".    hand  .";
   height: 100vh;
@@ -18,6 +19,30 @@ body {
   padding: 10px;
   padding-top: 30px;
   box-sizing: border-box;
+}
+
+/* === Turn Banner === */
+.turn-banner {
+  grid-area: banner;
+  margin: 0 auto;
+  padding: 10px 20px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  background-color: gray;
+  width: fit-content;
+}
+
+/* === Game ID === */
+.room-id {
+  grid-column: 1 / -1;
+  text-align: center;
+  margin-top: -10px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: gold;
 }
 
 /* === Game Board === */
@@ -62,7 +87,6 @@ body {
   box-shadow: 0 0 3px #000;
 }
 
-/* Highlight for selected card on board */
 .cell.highlight {
   outline: 2px solid yellow;
   box-shadow: 0 0 10px yellow;
@@ -74,16 +98,14 @@ body {
   pointer-events: none;
 }
 
-/* === Hand === */
+/* === Hand (Deck Cards) === */
 .hand {
   display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
   gap: 8px;
   position: absolute;
   bottom: 0;
   right: 20px;
-  transform: translateY(100%) rotate(-5deg);
+  transform: translateY(100%);
   z-index: 10;
   padding: 10px 20px;
   background-color: rgba(0, 0, 0, 0.6);
@@ -93,29 +115,26 @@ body {
 }
 
 .hand.visible {
-  transform: translateY(0%) rotate(-5deg);
+  transform: translateY(0%);
 }
-
 
 .hand img {
   width: 60px;
-  height: auto;
   cursor: pointer;
   border: 2px solid transparent;
   border-radius: 6px;
-  transform: rotate(var(--rotate));
-  transition: transform 0.3s, border 0.3s;
+  transition: transform 0.3s ease;
 }
 
 .hand img:hover {
-  transform: scale(1.05) rotate(var(--rotate));
+  transform: scale(1.05);
 }
 
 .hand img.selected {
   border: 2px solid yellow;
 }
 
-/* === Player Info === */
+/* === Player Info Table === */
 .player-info {
   width: 200px;
   grid-area: info;
@@ -126,57 +145,16 @@ body {
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
-.player-info h2 {
-  margin-top: 0;
-  font-size: 1.2em;
-}
-
 .player-info table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  font-size: 0.95em;
 }
 
-.player-info table td {
-  padding: 6px;
+.player-info td {
+  padding: 6px 10px;
   border-bottom: 1px solid #555;
-  vertical-align: middle;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.player-info table td:first-child {
-  width: 24px;
-}
-
-.player-info table td:nth-child(2) {
-  width: 80px;
-}
-
-.player-info table td:nth-child(3) {
-  width: 70px;
-  text-align: right;
-}
-
-/* === Turn Banner === */
-.turn-banner {
-  margin: 10px auto;
-  padding: 10px 20px;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: white;
-  border-radius: 10px;
-  width: fit-content;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
-}
-
-.chip.small {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 8px;
+  text-align: left;
 }
 
 /* === Winning Glow === */
@@ -188,4 +166,25 @@ body {
 @keyframes pulse {
   0% { box-shadow: 0 0 12px 5px yellow; }
   100% { box-shadow: 0 0 20px 10px gold; }
+}
+
+/* === Music Controls === */
+.navigation {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  margin: 0 10px;
+  cursor: pointer;
+}
+
+.action-btn-big {
+  font-size: 2rem;
 }
