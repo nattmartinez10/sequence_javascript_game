@@ -3,11 +3,12 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 
-const app = express();
-
+// ✅ Replace with your actual Vercel frontend URL
 const allowedOrigins = [
-  'https://sequence-javascript-game-c9tm5c0z1-nattmartinez10s-projects.vercel.app'
+  'https://sequence-javascript-game-4rbdditvi-nattmartinez10s-projects.vercel.app'
 ];
+
+const app = express();
 
 app.use(cors({
   origin: allowedOrigins,
@@ -17,6 +18,10 @@ app.use(cors({
 app.use(express.json());
 
 const server = createServer(app);
+
+// ✅ Dynamic port for Render
+const PORT = process.env.PORT || 3000;
+
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
@@ -25,10 +30,12 @@ const io = new Server(server, {
   }
 });
 
+// ✅ Game logic
 const rooms = {}; // roomId => { players, turnIndex, teamMode, sequences }
 
 app.post('/join', (req, res) => {
   const { name, color, roomId } = req.body;
+
   if (!rooms[roomId]) {
     rooms[roomId] = {
       players: [],
@@ -46,14 +53,14 @@ app.post('/join', (req, res) => {
 
   const alreadyInRoom = room.players.some(p => p.name === name);
   if (alreadyInRoom) {
-    return res.json({ success: true, message: 'Rejoining...' });
+    return res.json({ success: true, message: 'Rejoining...', roomId });
   }
 
   room.players.push({ name, color });
   room.sequences[name] = 0;
   room.teamMode = room.players.length === 4;
 
-  res.json({ success: true, message: room.players.length < 2 ? 'Waiting for others...' : 'Joining game...' });
+  res.json({ success: true, message: room.players.length < 2 ? 'Waiting for others...' : 'Joining game...', roomId });
 });
 
 io.on('connection', (socket) => {
@@ -118,7 +125,6 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(3000, () => {
-  console.log('🚀 Server running on port 3000');
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
-
